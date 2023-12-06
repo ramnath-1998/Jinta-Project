@@ -304,6 +304,11 @@ def get_exact_compressor_pairs(i_of_pair, j_of_pair,exact_compressor_columns):
 multiplier = 61123
 multiplicand = 64135
 
+# Final bits : [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1]
+# Final bit array as int : 1110000001011101111011011001110000011110010011111011001001001000101110101100111011100100101011011001
+# Final bit array as decimal : 2078109561
+
+
 result_array = multiply_multiplier_with_multiplicand(multiplier,multiplicand)
 
 print(f"Result Array : {result_array}")
@@ -451,151 +456,151 @@ for i in range(len(splitted_columns_array)):
 
 
 
+print(f"result : {result}")
 
 def generate_columns_before_cpa(result):
     columns = []
     for i in range(len(splitted_columns_array)):
         column_1 = result[i,0]
-        column_2 = []
+        column_2 = [None,None]
         if result_already_present((i,j),result):
             column_2 = result[i,1]
-        column = [column_1,column_2]
+        column = [column_1[0],column_1[1],column_2[0],column_2[1]]
         columns.append(column)
     return columns
 
 
-
-
 splitted_columns_array_final = generate_columns_before_cpa(result)
+print(f"splitted_columns_array_final : {splitted_columns_array_final} ")
 
 
+half_adder_full_adder_pairs_final = []
+exact_compressor_pairs_final = []
 
-half_adder_full_adder_pairs_final = add_half_adder_full_adder_pairs(splitted_columns_array_final)
-print(f"Half Adder Pairs Final : {half_adder_full_adder_pairs_final}")
-exact_compressor_columns_final = add_exact_compressor_columns(splitted_columns_array)
-print(f"Exact Compressor Columns Final : {exact_compressor_columns_final}")
+def not_exists_in_half_adder_pairs_final(index):
+    for each_pair in half_adder_full_adder_pairs_final:
+        if index in each_pair[3]:
+            return False
+    return True
 
-result_final = {}
+def get_half_adder_full_adder_pairs_final(splitted_columns_array_final):
+    for i in range(len(splitted_columns_array_final)):
+        each_column = splitted_columns_array_final[i]
+        if get_effective_length_of_column(each_column) == 3 and not_exists_in_half_adder_pairs_final(i):
+            full_adder_pair = splitted_columns_array_final[i+1]
+            full_adder_carry_pair = splitted_columns_array_final[i+2]
+            half_adder_full_adder_pairs_final.append([each_column,full_adder_pair,full_adder_carry_pair,[i, i+1, i+2]])
+    return half_adder_full_adder_pairs_final
+
+def get_exact_compressor_pairs_final(splitted_columns_array_final):
+    for i in range(len(splitted_columns_array_final)):
+        each_column = splitted_columns_array_final[i]
+        if i == len(splitted_columns_array_final) - 1:
+            exact_compressor_pairs_final.append([each_column,None,i])
+        else:
+            if get_effective_length_of_column(each_column) == 4:
+                next_column = splitted_columns_array_final[i+1]
+                exact_compressor_pairs_final.append([each_column,next_column,i])
+    return exact_compressor_pairs_final
+
+half_adder_full_adder_pairs_final = get_half_adder_full_adder_pairs_final(splitted_columns_array_final)
+print(f"half_adder_pairs : {half_adder_full_adder_pairs_final} ")
+exact_compressor_pairs_final = get_exact_compressor_pairs_final(splitted_columns_array_final)
+print(f"exact_compressor_pairs : {exact_compressor_pairs_final} ")
+
+
+def half_adder_full_adder_pair_final_not_contains(i):
+    for each_array in half_adder_full_adder_pairs_final:
+        if each_array[3] == i :
+            return False
+    return True
+
+
 cout_array_final = []
 
+
+def get_half_adder_full_adder_pair_final(index):
+    for each_pair in half_adder_full_adder_pairs_final:
+        i = each_pair[3][0]
+        if i == index:
+            return each_pair
+    
+
+result_final = {}
+
+def get_cary_in_from_cout_final_array(index):
+    for each_array in cout_array_final :
+        if each_array[0] == index:
+            return each_array[1]
+
+
+def get_exacy_compressor_pair_final(index):
+    for each_pair in exact_compressor_pairs_final:
+        if each_pair[2] == index:
+            return each_pair
+
+
 for i in range(len(splitted_columns_array_final)):
-    for j in range(len(splitted_columns_array_final[i])):
-        byte_array = splitted_columns_array_final[i][j]
-        if get_effective_length_of_column(byte_array) == 1:
-            sum = byte_array[0]
-            result_final[i, j] = [sum, None]
-        elif get_effective_length_of_column(byte_array) == 2:
-            sum = byte_array[0]
-            carry = byte_array[1]
-            result_final[i, j] = [sum, carry]
-        elif (
-            get_effective_length_of_column(byte_array) == 3
-            and half_adder_full_adder_pair_array_not_contains(i, j, half_adder_full_adder_pairs_final) is not True
-        ):
-          
-            half_full_adder_array = get_half_adder_full_adder_pairs(i, j, half_adder_full_adder_pairs_final)
-            half_adder_pair, i_half_adder_pair, j_half_adder_pair = (
-                half_full_adder_array[0],
-                i,
-                j,
-            )
-            full_adder_pair, i_full_adder_pair, j_full_adder_pair = (
-                half_full_adder_array[1],
-                i + 1,
-                j,
-            )
-            full_adder_carry_pair, i_full_adder_carry_pair, j_full_adder_carry_pair = (
-                half_full_adder_array[2],
-                i + 2,
-                j,
-            )
-            half_adder_bit_1 = half_adder_pair[0]
-            half_adder_bit_2 = half_adder_pair[1]
-            half_adder_sum, half_adder_carry = half_adder(
-                half_adder_bit_1, half_adder_bit_2
-            )
-            result_final[i_half_adder_pair, j_half_adder_pair] = [
-                half_adder_sum,
-                half_adder_carry,
-            ]
-            full_adder_bit_1 = full_adder_pair[0]
-            full_adder_bit_2 = full_adder_pair[1]
-            full_adder_sum, full_adder_carry = full_adder(
-                full_adder_bit_1, full_adder_bit_2, half_adder_carry
-            )
-            result_final[i_full_adder_pair, j_full_adder_pair] = [
-                full_adder_sum,
-                full_adder_carry,
-            ]
-            sum_exact, cout_exact, carry_exact = exact_compressor(
-                full_adder_carry_pair, full_adder_carry
-            )
-            result_final[i_full_adder_carry_pair, j_full_adder_carry_pair] = [
-                sum_exact,
-                carry_exact,
-            ]
-            cout_array_final.append(
-                [[i_full_adder_carry_pair, j_full_adder_carry_pair], cout_exact]
-            )
-        elif (
-            get_effective_length_of_column(byte_array) == 4
-            and result_already_present((i, j),result_final) is not True
-            and (i and j) <= len(exact_compressor_columns_final)
-        ):
-            if i != 31 :
-                exact_compressor_pair_array = get_exact_compressor_pairs(i, j, exact_compressor_columns_final)
-                if exact_compressor_pair_array is not None:
-                    first_pair = exact_compressor_pair_array[0]
-                    second_pair = exact_compressor_pair_array[1]
-                    i_first_pair, j_first_pair = i, j
-                    i_second_pair, j_second_pair = i + 1, j
-                    c_in_of_first_pair = get_cout_from_cout_array(i - 1, j, cout_array_final)
-                    if c_in_of_first_pair is not None:
-                        (
-                            sum_exact_first,
-                            cout_exact_first,
-                            carry_exact_first,
-                        ) = exact_compressor(first_pair, c_in_of_first_pair)
-                        result[i_first_pair, j_first_pair] = [
-                            sum_exact_first,
-                            carry_exact_first,
-                        ]
-                        (
-                            sum_exact_second,
-                            cout_exact_second,
-                            carry_exact_second,
-                        ) = exact_compressor(second_pair, cout_exact_first)
-                        result[i_second_pair, j_second_pair] = [
-                            sum_exact_second,
-                            carry_exact_second,
-                        ]
-                        (
-                            sum_exact_second,
-                            cout_exact_second,
-                            carry_exact_second,
-                        ) = exact_compressor(second_pair, cout_exact_first)
-                        result[i_second_pair, j_second_pair] = [
-                            sum_exact_second,
-                            carry_exact_second,
-                        ]
-                        cout_array.append(
-                            [[i_second_pair, j_second_pair], cout_exact_second]
-                        )
-            if i == 31 :
-                    first_pair = exact_compressor_pair_array[0]
-                    i_first_pair, j_first_pair = i, j
-                    c_in_of_first_pair = get_cout_from_cout_array(i - 1, j, cout_array_final)
-                    if c_in_of_first_pair is not None:
-                        (
-                            sum_exact_first,
-                            cout_exact_first,
-                            carry_exact_first,
-                        ) = exact_compressor(first_pair, c_in_of_first_pair)
-                        result_final[i_first_pair, j_first_pair] = [
-                            sum_exact_first,
-                            carry_exact_first,
-                        ]
+    current_column = splitted_columns_array_final[i]
+    i_of_next_column, j_of_next_column = i+1, j+1
+    if get_effective_length_of_column(current_column) == 1:
+        sum = current_column[0]
+        result_final[i]=[sum,None]
+    elif get_effective_length_of_column(current_column) == 2 :
+        sum = current_column[0]
+        carry = current_column[1]
+        result_final[i]=[sum,carry]
+    elif get_effective_length_of_column(current_column)== 3 and not result_already_present(i,result_final):
+        result = get_half_adder_full_adder_pair_final(i)
+        half_adder_pair = result[0]
+        full_adder_pair = result[1]
+        full_adder_carry_pair = result[2]
+        i_half_adder_pair, i_full_adder_pair, i_full_adder_carry_pair = result[3][0],result[3][1],result[3][2]
+        sum_half_adder, cout_half_adder = half_adder(half_adder_pair[0], half_adder_pair[1])
+        carry_half_adder = half_adder_pair[2]
+        sum_full_adder, cout_full_adder = full_adder(full_adder_pair[0],full_adder_pair[1],cout_half_adder)
+        carry_full_adder = full_adder_pair[2]
+        result_final[i_half_adder_pair] = [sum_half_adder,carry_half_adder]
+        result_final[i_full_adder_pair] = [sum_full_adder,carry_full_adder]
+        sum_final_carry,cout_final_carry,carry_final_carry = approx_compressor(full_adder_carry_pair,cout_full_adder)
+        result_final[i_full_adder_carry_pair] = [sum_final_carry,carry_final_carry]
+        cout_array_final.append([i_full_adder_carry_pair, cout_final_carry])
+    elif get_effective_length_of_column(current_column) == 4 and not result_already_present(i, result_final):
+        exact_compressor_pair = get_exacy_compressor_pair_final(i)
+        next_column = exact_compressor_pair[1]
+        c_in_first_column = get_cary_in_from_cout_final_array(i-1)
+        sum_first_array, cout_first_array, carry_first_array = exact_compressor(current_column,c_in_first_column)
+        result_final[i] = [sum_first_array,carry_first_array]
+        if i != len(splitted_columns_array_final) - 1:
+            sum_second_array, cout_second_array, carry_second_array = exact_compressor(next_column,cout_first_array)
+            cout_array_final.append([i,cout_second_array])
+            result_final[i] = [sum_second_array,carry_second_array]
+
+print(f"result_final{result_final}")
+
+final_bit_array = []
+
+for i in range(len(splitted_columns_array_final)):
+    final_result_bits = result_final[i]
+    if final_result_bits[1] is not None:
+        final_sum = final_result_bits[0] or final_result_bits[1]
+        final_bit_array.append(final_sum)
+    else :
+        final_bit_array.append(final_result_bits[0])
 
 
-print(f"Result final : {result_final}")
+
+def convert_bin_array_to_decimal(bin_array):
+    value =0 
+    for i in range(len(bin_array)):
+        digit = bin_array.pop()
+        if digit == 1:
+            value = value + pow(2, i)
+    return value
+
+print(f"Final bits : {final_bit_array}")
+
+print(f"Final bit array as int : {convert_to_binary_from_binary_array(final_bit_array)}")
+
+print(f"Final bit array as decimal : {convert_bin_array_to_decimal(final_bit_array)}")
 
