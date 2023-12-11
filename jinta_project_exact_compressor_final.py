@@ -253,25 +253,6 @@ def full_adder(bit1, bit2, carry_in):
 
 def exact_compressor(bytes_array, cin):
     print(f"Byte Array: {bytes_array}")
-    
-    # Convert non-string elements to binary strings
-    bytes_array = [bin(byte)[2:] if isinstance(byte, int) else byte for byte in bytes_array]
-    
-    # Convert cin to an integer if it's a binary string
-    cin = int(cin, 2) if isinstance(cin, str) else cin
-
-    # Calculate sum value
-    x1, x2, x3, x4 = map(lambda x: int(x, 2), bytes_array)
-    sum_value = bin(x1 ^ x2 ^ x3 ^ x4 ^ cin)[2:]  # Convert back to binary string
-
-    # Calculate carry-out (Cout)
-    cout = bin(((x1 ^ x2) & x3) | ~((x1 ^ x2) & x1))[2:]  # Convert back to binary string
-
-    # Calculate carry
-    carry = bin(((x1 ^ x2 ^ x3 ^ x4) & cin) | ~((x1 ^ x2 ^ x3 ^ x4) & x4))[2:]  # Convert back to binary string
-
-    return sum_value, cout, carry
-
 
 
 
