@@ -173,9 +173,10 @@ def add_exact_compressor_columns(splitted_columns_array):
             )
 
             if i == len(splitted_columns_array)-1:
-                splitted_columns_array[i][j]
-                [None,None,None,None]
-                [i,j]
+                
+                exact_compressor_columns.append([splitted_columns_array[i][j],
+                [None,None,None,None],
+                [i,j]])
             if length_of_column == 4 and i < len(splitted_columns_array)-1:
                 exact_compressor_columns.append(
                     [
@@ -250,24 +251,22 @@ def full_adder(bit1, bit2, carry_in):
     carry_out = carry_1 or carry_2
     return sum_bit, carry_out
 
-
 def exact_compressor(bytes_array, cin):
     x1, x2, x3, x4 = bytes_array[0], bytes_array[1], bytes_array[2], bytes_array[3]
-    sum_value = int(x1 ^ x2 ^ x3 ^ x4 ^ cin)
-    k = int(x1 ^ x2)
-    kc = int(not k)
-    r1 = int(k and x3)
-    r2 = int(kc and x1)
-    cout = int(r1 or r2)
-    j = int(x1 ^ x2 ^ x3 ^ x4)
-    jc = int(not j)
-    j1 = int(j and cin)
-    j2 = int(jc and x4)
-    carry = int(j1 or j2)
-    return sum_value, cout, carry
+    sum = int(x1 or x2 or x3 or x4 or cin)
+    k1 = int(x1 ^ x2)
+    k2 = int(k1 and x3)
+    k3 = int(k2 and x1)
+    k4 = int(not k3)
+    cout = int(k2 or k4)
+    d1 = int(x1 ^ x2 ^ x3 ^ x4)
+    d2 = int(d1 and cin)
+    d3 = int(d1 and x4)
+    d4 = int(not d3)
+    carry = int(d2 or d4)
+    return sum,cout,carry
 
-
-def approx_compressor(bytes_array, cin):
+def approx_compressor(bytes_array):
     x1, x2, x3, x4 = bytes_array[0], bytes_array[1], bytes_array[2], bytes_array[3]
     k1 = int(x1 ^ x2)
     k2 = int(x3 ^ x4)
@@ -280,14 +279,13 @@ def approx_compressor(bytes_array, cin):
     p2c = int(not p2)
     p_or = int(p1c or p2c)
     carry = int(not p_or)
-    cout = cin
-    return sum_value, cout, carry
+    return sum_value, carry
 
 def get_cout_from_cout_array(i, j, cout_array):
     for each_cout in cout_array:
         if each_cout[0] == [i, j]:
             return each_cout[1]
-    return None
+    return 0
 
 
 def result_already_present(key_tuple, result):
@@ -306,7 +304,7 @@ def get_exact_compressor_pairs(i_of_pair, j_of_pair,exact_compressor_columns):
 
 
 
-multiplier = 61683
+multiplier = 61115
 multiplicand = 64135
 
 # Final bits : [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1]
@@ -344,6 +342,14 @@ cout_array = []
 for i in range(len(splitted_columns_array)):
     for j in range(len(splitted_columns_array[i])):
         byte_array = splitted_columns_array[i][j]
+        if (i == 6 or i==7 or i == 8 or i==9 or i==10 or i==11) and result_already_present((i, j),result) is not True:
+            exact_compressor_pair_array = get_exact_compressor_pairs(i, j, exact_compressor_columns)
+            if exact_compressor_pair_array is not None:
+                first_pair = exact_compressor_pair_array[0]
+                second_pair = exact_compressor_pair_array[1]
+                i_first_pair, j_first_pair = i, j
+                (sum_exact_first,carry_exact_first) = approx_compressor(first_pair)
+                result[i_first_pair, j_first_pair] = [sum_exact_first,carry_exact_first]
         if get_effective_length_of_column(byte_array) == 1:
             sum = byte_array[0]
             result[i, j] = [sum, None]
@@ -390,7 +396,7 @@ for i in range(len(splitted_columns_array)):
                 full_adder_sum,
                 full_adder_carry,
             ]
-            sum_exact, cout_exact, carry_exact = approx_compressor(
+            sum_exact, cout_exact, carry_exact = exact_compressor(
                 full_adder_carry_pair, full_adder_carry
             )
             result[i_full_adder_carry_pair, j_full_adder_carry_pair] = [
@@ -404,6 +410,7 @@ for i in range(len(splitted_columns_array)):
             get_effective_length_of_column(byte_array) == 4
             and result_already_present((i, j),result) is not True
             and (i and j) <= len(exact_compressor_columns)
+            and (i != 6) and (i != 7) and (i != 8) and i != 9 and (i != 10) and (i != 11)
         ):
             if i < len(splitted_columns_array)-1 :
                 exact_compressor_pair_array = get_exact_compressor_pairs(i, j, exact_compressor_columns)
@@ -418,7 +425,7 @@ for i in range(len(splitted_columns_array)):
                             sum_exact_first,
                             cout_exact_first,
                             carry_exact_first,
-                        ) = approx_compressor(first_pair, c_in_of_first_pair)
+                        ) = exact_compressor(first_pair, c_in_of_first_pair)
                         result[i_first_pair, j_first_pair] = [
                             sum_exact_first,
                             carry_exact_first,
@@ -427,7 +434,7 @@ for i in range(len(splitted_columns_array)):
                             sum_exact_second,
                             cout_exact_second,
                             carry_exact_second,
-                        ) = approx_compressor(second_pair, cout_exact_first)
+                        ) = exact_compressor(second_pair, cout_exact_first)
                         result[i_second_pair, j_second_pair] = [
                             sum_exact_second,
                             carry_exact_second,
@@ -436,7 +443,7 @@ for i in range(len(splitted_columns_array)):
                             sum_exact_second,
                             cout_exact_second,
                             carry_exact_second,
-                        ) = approx_compressor(second_pair, cout_exact_first)
+                        ) = exact_compressor(second_pair, cout_exact_first)
                         result[i_second_pair, j_second_pair] = [
                             sum_exact_second,
                             carry_exact_second,
@@ -453,7 +460,7 @@ for i in range(len(splitted_columns_array)):
                             sum_exact_first,
                             cout_exact_first,
                             carry_exact_first,
-                        ) = approx_compressor(first_pair, c_in_of_first_pair)
+                        ) = exact_compressor(first_pair, c_in_of_first_pair)
                         result[i_first_pair, j_first_pair] = [
                             sum_exact_first,
                             carry_exact_first,
@@ -567,17 +574,17 @@ for i in range(len(splitted_columns_array_final)):
         carry_full_adder = full_adder_pair[2]
         result_final[i_half_adder_pair] = [sum_half_adder,carry_half_adder]
         result_final[i_full_adder_pair] = [sum_full_adder,carry_full_adder]
-        sum_final_carry,cout_final_carry,carry_final_carry = approx_compressor(full_adder_carry_pair,cout_full_adder)
+        sum_final_carry,cout_final_carry,carry_final_carry = exact_compressor(full_adder_carry_pair,cout_full_adder)
         result_final[i_full_adder_carry_pair] = [sum_final_carry,carry_final_carry]
         cout_array_final.append([i_full_adder_carry_pair, cout_final_carry])
     elif get_effective_length_of_column(current_column) == 4 and not result_already_present(i, result_final):
         exact_compressor_pair = get_exacy_compressor_pair_final(i)
         next_column = exact_compressor_pair[1]
         c_in_first_column = get_cary_in_from_cout_final_array(i-1)
-        sum_first_array, cout_first_array, carry_first_array = approx_compressor(current_column,c_in_first_column)
+        sum_first_array, cout_first_array, carry_first_array = exact_compressor(current_column,c_in_first_column)
         result_final[i] = [sum_first_array,carry_first_array]
         if i != len(splitted_columns_array_final) - 1:
-            sum_second_array, cout_second_array, carry_second_array = approx_compressor(next_column,cout_first_array)
+            sum_second_array, cout_second_array, carry_second_array = exact_compressor(next_column,cout_first_array)
             cout_array_final.append([i,cout_second_array])
             result_final[i] = [sum_second_array,carry_second_array]
 
@@ -609,8 +616,8 @@ print(f"Final bit array as int : {convert_to_binary_from_binary_array(final_bit_
 
 print(f"Final bit array as decimal : {convert_bin_array_to_decimal(final_bit_array)}")
 
+print(f"Length of splitted columns array : {len(splitted_columns_array)}")
 
-# Exact Compressor Results
 
 # Result Array : [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None, None, None, None, None, None, None, None, None], [0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
 # Columns Array : [[0, None, None, None, None, None, None, None], [1, None, None, None, None, None, None, None], [1, 0, None, None, None, None, None, None], [1, 1, None, None, None, None, None, None], [0, 1, 0, None, None, None, None, None], [0, 1, 0, None, None, None, None, None], [0, 0, 0, 0, None, None, None, None], [0, 0, 0, 0, None, None, None, None], [1, 0, 0, 0, 0, None, None, None], [0, 0, 0, 0, 1, None, None, None], [1, 1, 0, 0, 1, 0, None, None], [0, 0, 0, 0, 1, 1, None, None], [1, 1, 0, 0, 0, 1, 0, None], [1, 0, 0, 0, 0, 1, 0, None], [1, 1, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 1, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 1], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
@@ -620,33 +627,13 @@ print(f"Final bit array as decimal : {convert_bin_array_to_decimal(final_bit_arr
 # [0, 1, 0, None]
 # [0, 0, 0, 0]
 # Half Adder Pairs : [[[0, 1, 0, None], [0, 1, 0, None], [0, 0, 0, 0], [4, 0]], [[0, 1, 0, None], [0, 1, 0, None], [0, 0, 0, 0], [12, 1]]]
-# Exact Compressor Columns : [[[0, 0, 0, 0], [0, 0, 0, 0], [6, 0]], [[0, 0, 0, 0], [1, 0, 0, 0], [7, 0]], [[1, 0, 0, 0], [0, 0, 0, 0], [8, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [9, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [10, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [11, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [12, 0]], [[1, 0, 0, 0], [1, 1, 0, 0], [13, 0]], [[1, 1, 0, 0], [1, 1, 0, 0], [14, 0]], [[0, 0, 0, 0], [0, 0, 0, 1], [14, 1]], [[1, 1, 0, 0], [0, 1, 0, 0], [15, 0]], [[0, 0, 0, 1], [1, 0, 0, 1], [15, 1]], [[0, 1, 0, 0], [0, 1, 0, 0], [16, 0]], [[1, 0, 0, 1], [0, 0, 0, 1], [16, 1]], [[0, 1, 0, 0], [0, 0, 0, 0], [17, 0]], [[0, 0, 0, 1], [1, 1, 0, 0], [17, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [18, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [18, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [19, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [19, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [20, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [20, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [21, 0]], [[1, 0, 0, 0], [1, 1, 0, 1], [21, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [22, 0]], [[1, 1, 0, 1], [1, 1, 0, 0], [22, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [23, 0]], [[1, 1, 0, 0], [0, 1, 0, 1], [23, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [24, 0]], [[0, 1, 0, 1], [0, 1, 0, 0], [24, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [25, 0]], [[0, 1, 0, 0], [0, 0, 0, 1], [25, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [26, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [26, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [27, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [27, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [28, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [28, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [29, 0]], [[0, 0, 0, 1], [0, 0, 0, 0], [29, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 0]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 1]]]
-# result : {(0, 0): [0, None], (1, 0): [1, None], (2, 0): [1, 0], (3, 0): [1, 1], (4, 0): [1, 0], (5, 0): [1, 0], (6, 0): [0, 0], (7, 0): [0, 0], (8, 0): [1, 0], (8, 1): [0, None], (9, 0): [0, 0], (10, 0): [0, 0], (9, 1): [1, None], (10, 1): [1, 0], (11, 0): [1, 0], (12, 0): [0, 0], (11, 1): [1, 1], (12, 1): [1, 0], (13, 1): [1, 0], (14, 1): [0, 0], (13, 0): [0, 1], (14, 0): [0, 0], (15, 0): [1, 0], (16, 0): [0, 1], (15, 1): [1, 0], (16, 1): [0, 1], (17, 0): [1, 0], (18, 0): [0, 0], (17, 1): [1, 0], (18, 1): [0, 0], (19, 0): [0, 0], (20, 0): [0, 0], (19, 1): [1, 0], (20, 1): [0, 0], (21, 0): [0, 0], (22, 0): [0, 0], (21, 1): [0, 1], (22, 1): [1, 0], (23, 0): [0, 0], (24, 0): [0, 0], (23, 1): [1, 0], (24, 1): [1, 1], (25, 0): [0, 0], (26, 0): [0, 0], (25, 1): [1, 0], (26, 1): [1, 0], (27, 0): [0, 0], (28, 0): [0, 0], (27, 1): [1, 0], (28, 1): [1, 0], (29, 0): [0, 0], (30, 0): [0, 0], (29, 1): [1, 0], (30, 1): [0, 0], (31, 0): [1, 0], (31, 1): [1, 0]}
-# splitted_columns_array_final : [[0, None, None, None], [1, None, None, None], [1, 0, None, None], [1, 1, None, None], [1, 0, None, None], [1, 0, None, None], [0, 0, None, None], [0, 0, None, None], [1, 0, 0, None], [0, 0, 1, None], [0, 0, 1, 0], [1, 0, 1, 1], [0, 0, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 1], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 0], [1, 0, 1, 0]] 
-# half_adder_pairs : [[[1, 0, 0, None], [0, 0, 1, None], [0, 0, 1, 0], [8, 9, 10]]] 
-# exact_compressor_pairs : [[[0, 0, 1, 0], [1, 0, 1, 1], 10], [[1, 0, 1, 1], [0, 0, 1, 0], 11], [[0, 0, 1, 0], [0, 1, 1, 0], 12], [[0, 1, 1, 0], [0, 0, 0, 0], 13], [[0, 0, 0, 0], [1, 0, 1, 0], 14], [[1, 0, 1, 0], [0, 1, 0, 1], 15], [[0, 1, 0, 1], [1, 0, 1, 0], 16], [[1, 0, 1, 0], [0, 0, 0, 0], 17], [[0, 0, 0, 0], [0, 0, 1, 0], 18], [[0, 0, 1, 0], [0, 0, 0, 0], 19], [[0, 0, 0, 0], [0, 0, 0, 1], 20], [[0, 0, 0, 1], [0, 0, 1, 0], 21], [[0, 0, 1, 0], [0, 0, 1, 0], 22], [[0, 0, 1, 0], [0, 0, 1, 1], 23], [[0, 0, 1, 1], [0, 0, 1, 0], 24], [[0, 0, 1, 0], [0, 0, 1, 0], 25], [[0, 0, 1, 0], [0, 0, 1, 0], 26], [[0, 0, 1, 0], [0, 0, 1, 0], 27], [[0, 0, 1, 0], [0, 0, 1, 0], 28], [[0, 0, 1, 0], [0, 0, 0, 0], 29], [[0, 0, 0, 0], [1, 0, 1, 0], 30], [[1, 0, 1, 0], None, 31]] 
-# result_final{0: [0, None], 1: [1, None], 2: [1, 0], 3: [1, 1], 4: [1, 0], 5: [1, 0], 6: [0, 0], 7: [0, 0], 8: [1, 0], 9: [0, 1], 10: [1, 0], 11: [0, 1], 12: [0, 0], 13: [1, 0], 14: [0, 0], 15: [1, 1], 16: [0, 0], 17: [1, 0], 18: [1, 0], 19: [0, 0], 20: [1, 0], 21: [1, 0], 22: [1, 0], 23: [0, 1], 24: [1, 0], 25: [1, 0], 26: [1, 0], 27: [1, 0], 28: [1, 0], 29: [0, 0], 30: [0, 0], 31: [1, 0]}
-# Final bits : [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
-# Final bit array as int : 1111100111101010110111111111001
-# Final bit array as decimal : 2096459769
-
-
-# Approximate Compressor Results
-
-# Result Array : [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None, None, None], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, None, None, None, None, None, None, None, None, None, None, None], [0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
-# Columns Array : [[0, None, None, None, None, None, None, None], [1, None, None, None, None, None, None, None], [1, 0, None, None, None, None, None, None], [1, 1, None, None, None, None, None, None], [0, 1, 0, None, None, None, None, None], [0, 1, 0, None, None, None, None, None], [0, 0, 0, 0, None, None, None, None], [0, 0, 0, 0, None, None, None, None], [1, 0, 0, 0, 0, None, None, None], [0, 0, 0, 0, 1, None, None, None], [1, 1, 0, 0, 1, 0, None, None], [0, 0, 0, 0, 1, 1, None, None], [1, 1, 0, 0, 0, 1, 0, None], [1, 0, 0, 0, 0, 1, 0, None], [1, 1, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 1, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 1], [0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
-# Splitted Columns Array : [[[0, None, None, None], [None, None, None, None]], [[1, None, None, None], [None, None, None, None]], [[1, 0, None, None], [None, None, None, None]], [[1, 1, None, None], [None, None, None, None]], [[0, 1, 0, None], [None, None, None, None]], [[0, 1, 0, None], [None, None, None, None]], [[0, 0, 0, 0], [None, None, None, None]], [[0, 0, 0, 0], [None, None, None, None]], [[1, 0, 0, 0], [0, None, None, None]], [[0, 0, 0, 0], [1, None, None, None]], [[1, 1, 0, 0], [1, 0, None, None]], [[0, 0, 0, 0], [1, 1, None, None]], [[1, 1, 0, 0], [0, 1, 0, None]], [[1, 0, 0, 0], [0, 1, 0, None]], [[1, 1, 0, 0], [0, 0, 0, 0]], [[1, 1, 0, 0], [0, 0, 0, 1]], [[0, 1, 0, 0], [1, 0, 0, 1]], [[0, 1, 0, 0], [0, 0, 0, 1]], [[0, 0, 0, 0], [1, 1, 0, 0]], [[0, 0, 0, 0], [0, 0, 0, 0]], [[0, 0, 0, 0], [1, 1, 0, 0]], [[0, 0, 0, 0], [1, 0, 0, 0]], [[0, 0, 0, 0], [1, 1, 0, 1]], [[0, 0, 0, 0], [1, 1, 0, 0]], [[0, 0, 0, 0], [0, 1, 0, 1]], [[0, 0, 0, 0], [0, 1, 0, 0]], [[0, 0, 0, 0], [0, 0, 0, 1]], [[0, 0, 0, 0], [0, 0, 0, 1]], [[0, 0, 0, 0], [0, 0, 0, 1]], [[0, 0, 0, 0], [0, 0, 0, 1]], [[0, 0, 0, 0], [0, 0, 0, 0]], [[0, 0, 0, 0], [0, 0, 0, 0]]]
-# [0, 1, 0, None]
-# [0, 0, 0, 0]
-# [0, 1, 0, None]
-# [0, 0, 0, 0]
-# Half Adder Pairs : [[[0, 1, 0, None], [0, 1, 0, None], [0, 0, 0, 0], [4, 0]], [[0, 1, 0, None], [0, 1, 0, None], [0, 0, 0, 0], [12, 1]]]
-# Exact Compressor Columns : [[[0, 0, 0, 0], [0, 0, 0, 0], [6, 0]], [[0, 0, 0, 0], [1, 0, 0, 0], [7, 0]], [[1, 0, 0, 0], [0, 0, 0, 0], [8, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [9, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [10, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [11, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [12, 0]], [[1, 0, 0, 0], [1, 1, 0, 0], [13, 0]], [[1, 1, 0, 0], [1, 1, 0, 0], [14, 0]], [[0, 0, 0, 0], [0, 0, 0, 1], [14, 1]], [[1, 1, 0, 0], [0, 1, 0, 0], [15, 0]], [[0, 0, 0, 1], [1, 0, 0, 1], [15, 1]], [[0, 1, 0, 0], [0, 1, 0, 0], [16, 0]], [[1, 0, 0, 1], [0, 0, 0, 1], [16, 1]], [[0, 1, 0, 0], [0, 0, 0, 0], [17, 0]], [[0, 0, 0, 1], [1, 1, 0, 0], [17, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [18, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [18, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [19, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [19, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [20, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [20, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [21, 0]], [[1, 0, 0, 0], [1, 1, 0, 1], [21, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [22, 0]], [[1, 1, 0, 1], [1, 1, 0, 0], [22, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [23, 0]], [[1, 1, 0, 0], [0, 1, 0, 1], [23, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [24, 0]], [[0, 1, 0, 1], [0, 1, 0, 0], [24, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [25, 0]], [[0, 1, 0, 0], [0, 0, 0, 1], [25, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [26, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [26, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [27, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [27, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [28, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [28, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [29, 0]], [[0, 0, 0, 1], [0, 0, 0, 0], [29, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 0]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 1]]]
-# result : {(0, 0): [0, None], (1, 0): [1, None], (2, 0): [1, 0], (3, 0): [1, 1], (4, 0): [1, 0], (5, 0): [1, 0], (6, 0): [1, 0], (7, 0): [1, 0], (8, 0): [1, 0], (8, 1): [0, None], (9, 0): [1, 0], (10, 0): [1, 0], (9, 1): [1, None], (10, 1): [1, 0], (11, 0): [1, 0], (12, 0): [1, 0], (11, 1): [1, 1], (12, 1): [1, 0], (13, 1): [1, 0], (14, 1): [1, 0], (13, 0): [1, 0], (14, 0): [1, 0], (15, 0): [1, 0], (16, 0): [1, 0], (15, 1): [1, 0], (16, 1): [0, 0], (17, 0): [1, 0], (18, 0): [1, 0], (17, 1): [1, 0], (18, 1): [1, 0], (19, 0): [1, 0], (20, 0): [1, 0], (19, 1): [1, 0], (20, 1): [1, 0], (21, 0): [1, 0], (22, 0): [1, 0], (21, 1): [1, 0], (22, 1): [1, 0], (23, 0): [1, 0], (24, 0): [1, 0], (23, 1): [1, 0], (24, 1): [0, 0], (25, 0): [1, 0], (26, 0): [1, 0], (25, 1): [1, 0], (26, 1): [1, 0], (27, 0): [1, 0], (28, 0): [1, 0], (27, 1): [1, 0], (28, 1): [1, 0], (29, 0): [1, 0], (30, 0): [1, 0], (29, 1): [1, 0], (30, 1): [1, 0], (31, 0): [1, 0], (31, 1): [1, 0]}
-# splitted_columns_array_final : [[0, None, None, None], [1, None, None, None], [1, 0, None, None], [1, 1, None, None], [1, 0, None, None], [1, 0, None, None], [1, 0, None, None], [1, 0, None, None], [1, 0, 0, None], [1, 0, 1, None], [1, 0, 1, 0], [1, 0, 1, 1], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 0, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 0, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0]] 
+# Exact Compressor Columns : [[[0, 0, 0, 0], [0, 0, 0, 0], [6, 0]], [[0, 0, 0, 0], [1, 0, 0, 0], [7, 0]], [[1, 0, 0, 0], [0, 0, 0, 0], [8, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [9, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [10, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [11, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [12, 0]], [[1, 0, 0, 0], [1, 1, 0, 0], [13, 0]], [[1, 1, 0, 0], [1, 1, 0, 0], [14, 0]], [[0, 0, 0, 0], [0, 0, 0, 1], [14, 1]], [[1, 1, 0, 0], [0, 1, 0, 0], [15, 0]], [[0, 0, 0, 1], [1, 0, 0, 1], [15, 1]], [[0, 1, 0, 0], [0, 1, 0, 0], [16, 0]], [[1, 0, 0, 1], [0, 0, 0, 1], [16, 1]], [[0, 1, 0, 0], [0, 0, 0, 0], [17, 0]], [[0, 0, 0, 1], [1, 1, 0, 0], [17, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [18, 0]], [[1, 1, 0, 0], [0, 0, 0, 0], [18, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [19, 0]], [[0, 0, 0, 0], [1, 1, 0, 0], [19, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [20, 0]], [[1, 1, 0, 0], [1, 0, 0, 0], [20, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [21, 0]], [[1, 0, 0, 0], [1, 1, 0, 1], [21, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [22, 0]], [[1, 1, 0, 1], [1, 1, 0, 0], [22, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [23, 0]], [[1, 1, 0, 0], [0, 1, 0, 1], [23, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [24, 0]], [[0, 1, 0, 1], [0, 1, 0, 0], [24, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [25, 0]], [[0, 1, 0, 0], [0, 0, 0, 1], [25, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [26, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [26, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [27, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [27, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [28, 0]], [[0, 0, 0, 1], [0, 0, 0, 1], [28, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [29, 0]], [[0, 0, 0, 1], [0, 0, 0, 0], [29, 1]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 0]], [[0, 0, 0, 0], [0, 0, 0, 0], [30, 1]], [[0, 0, 0, 0], [None, None, None, None], [31, 0]], [[0, 0, 0, 0], [None, None, None, None], [31, 1]]]
+# result : {(0, 0): [0, None], (1, 0): [1, None], (2, 0): [1, 0], (3, 0): [1, 1], (4, 0): [1, 0], (5, 0): [1, 0], (6, 0): [0, 1], (7, 0): [1, 0], (8, 0): [1, 0], (8, 1): [0, None], (9, 0): [1, 0], (10, 0): [1, 0], (9, 1): [1, None], (10, 1): [1, 0], (11, 0): [1, 0], (12, 0): [1, 0], (11, 1): [1, 1], (12, 1): [1, 0], (13, 1): [1, 0], (14, 1): [0, 1], (13, 0): [1, 1], (14, 0): [1, 1], (15, 0): [1, 1], (16, 0): [1, 1], (15, 1): [1, 1], (16, 1): [1, 1], (17, 0): [1, 1], (18, 0): [1, 1], (17, 1): [1, 1], (18, 1): [1, 1], (19, 0): [1, 1], (20, 0): [1, 1], (19, 1): [1, 1], (20, 1): [1, 1], (21, 0): [1, 1], (22, 0): [1, 1], (21, 1): [1, 1], (22, 1): [1, 1], (23, 0): [1, 1], (24, 0): [1, 1], (23, 1): [1, 1], (24, 1): [1, 1], (25, 0): [1, 1], (26, 0): [1, 1], (25, 1): [1, 1], (26, 1): [1, 1], (27, 0): [1, 1], (28, 0): [1, 1], (27, 1): [1, 1], (28, 1): [1, 1], (29, 0): [1, 1], (30, 0): [1, 1], (29, 1): [1, 1], (30, 1): [1, 1], (31, 0): [1, 1], (31, 1): [1, 1]}
+# splitted_columns_array_final : [[0, None, None, None], [1, None, None, None], [1, 0, None, None], [1, 1, None, None], [1, 0, None, None], [1, 0, None, None], [0, 1, None, None], [1, 0, None, None], [1, 0, 0, None], [1, 0, 1, None], [1, 0, 1, 0], [1, 0, 1, 1], [1, 0, 1, 0], [1, 1, 1, 0], [1, 1, 0, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]] 
 # half_adder_pairs : [[[1, 0, 0, None], [1, 0, 1, None], [1, 0, 1, 0], [8, 9, 10]]] 
-# exact_compressor_pairs : [[[1, 0, 1, 0], [1, 0, 1, 1], 10], [[1, 0, 1, 1], [1, 0, 1, 0], 11], [[1, 0, 1, 0], [1, 0, 1, 0], 12], [[1, 0, 1, 0], [1, 0, 1, 0], 13], [[1, 0, 1, 0], [1, 0, 1, 0], 14], [[1, 0, 1, 0], [1, 0, 0, 0], 15], [[1, 0, 0, 0], [1, 0, 1, 0], 16], [[1, 0, 1, 0], [1, 0, 1, 0], 17], [[1, 0, 1, 0], [1, 0, 1, 0], 18], [[1, 0, 1, 0], [1, 0, 1, 0], 19], [[1, 0, 1, 0], [1, 0, 1, 0], 20], [[1, 0, 1, 0], [1, 0, 1, 0], 21], [[1, 0, 1, 0], [1, 0, 1, 0], 22], [[1, 0, 1, 0], [1, 0, 0, 0], 23], [[1, 0, 0, 0], [1, 0, 1, 0], 24], [[1, 0, 1, 0], [1, 0, 1, 0], 25], [[1, 0, 1, 0], [1, 0, 1, 0], 26], [[1, 0, 1, 0], [1, 0, 1, 0], 27], [[1, 0, 1, 0], [1, 0, 1, 0], 28], [[1, 0, 1, 0], [1, 0, 1, 0], 29], [[1, 0, 1, 0], [1, 0, 1, 0], 30], [[1, 0, 1, 0], None, 31]] 
-# result_final{0: [0, None], 1: [1, None], 2: [1, 0], 3: [1, 1], 4: [1, 0], 5: [1, 0], 6: [1, 0], 7: [1, 0], 8: [1, 0], 9: [1, 1], 10: [0, 0], 11: [0, 0], 12: [0, 0], 13: [0, 0], 14: [0, 0], 15: [1, 0], 16: [0, 0], 17: [0, 0], 18: [0, 0], 19: [0, 0], 20: [0, 0], 21: [0, 0], 22: [0, 0], 23: [1, 0], 24: [0, 0], 25: [0, 0], 26: [0, 0], 27: [0, 0], 28: [0, 0], 29: [0, 0], 30: [0, 0], 31: [0, 0]}
-# Final bits : [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-# Final bit array as int : 1111111110000010000000100000000
-# Final bit array as decimal : 2143355136
+# exact_compressor_pairs : [[[1, 0, 1, 0], [1, 0, 1, 1], 10], [[1, 0, 1, 1], [1, 0, 1, 0], 11], [[1, 0, 1, 0], [1, 1, 1, 0], 12], [[1, 1, 1, 0], [1, 1, 0, 1], 13], [[1, 1, 0, 1], [1, 1, 1, 1], 14], [[1, 1, 1, 1], [1, 1, 1, 1], 15], [[1, 1, 1, 1], [1, 1, 1, 1], 16], [[1, 1, 1, 1], [1, 1, 1, 1], 17], [[1, 1, 1, 1], [1, 1, 1, 1], 18], [[1, 1, 1, 1], [1, 1, 1, 1], 19], [[1, 1, 1, 1], [1, 1, 1, 1], 20], [[1, 1, 1, 1], [1, 1, 1, 1], 21], [[1, 1, 1, 1], [1, 1, 1, 1], 22], [[1, 1, 1, 1], [1, 1, 1, 1], 23], [[1, 1, 1, 1], [1, 1, 1, 1], 24], [[1, 1, 1, 1], [1, 1, 1, 1], 25], [[1, 1, 1, 1], [1, 1, 1, 1], 26], [[1, 1, 1, 1], [1, 1, 1, 1], 27], [[1, 1, 1, 1], [1, 1, 1, 1], 28], [[1, 1, 1, 1], [1, 1, 1, 1], 29], [[1, 1, 1, 1], [1, 1, 1, 1], 30], [[1, 1, 1, 1], None, 31]] 
+# result_final{0: [0, None], 1: [1, None], 2: [1, 0], 3: [1, 1], 4: [1, 0], 5: [1, 0], 6: [0, 1], 7: [1, 0], 8: [1, 0], 9: [1, 1], 10: [1, 1], 11: [1, 1], 12: [1, 1], 13: [1, 1], 14: [1, 1], 15: [1, 1], 16: [1, 1], 17: [1, 1], 18: [1, 1], 19: [1, 1], 20: [1, 1], 21: [1, 1], 22: [1, 1], 23: [1, 1], 24: [1, 1], 25: [1, 1], 26: [1, 1], 27: [1, 1], 28: [1, 1], 29: [1, 1], 30: [1, 1], 31: [1, 1]}
+# Final bits : [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+# Final bit array as int : 1111111111111111111111111111111
+# Final bit array as decimal : 2147483647
+# Length of splitted columns array : 32
