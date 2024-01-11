@@ -1,5 +1,5 @@
 
-multiplier = 61115
+multiplier = 100
 multiplicand = 64135
 
 
@@ -21,7 +21,7 @@ def approximate_compressor_final(multiplier,multiplicand):
         shifted_array = binary_array[shift_amount:] + [0] * shift_amount
         return shifted_array
 
-
+    
     def multiply_multiplier_with_multiplicand(multiplier, multiplicand):
         multiplicand_array = convert_to_binary_array(multiplicand)
         multiplier_array = generate_multiplier(multiplier)
@@ -60,33 +60,22 @@ def approximate_compressor_final(multiplier,multiplicand):
             result_array = two_s_complement
         return result_array
 
-
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
+        array = fill_start_with_zeros(array, 16)
         return array
-
-
-    def convert_to_binary_from_binary_array(binary_array):
-        binary_string = "".join(str(bit) for bit in binary_array)
-        binary_number = int(binary_string)
-        return binary_number
-
-
-    def calculate_length_of_product(multiplier_array, multiplicand_array, shift):
-        for i in range(0, len(multiplier_array)):
-            if i == 0:
-                result = len(multiplicand_array)
-            else:
-                result = result + shift
-        result = result + shift
-        return result
-
-
+    
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -99,6 +88,15 @@ def approximate_compressor_final(multiplier,multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
+
+    def calculate_length_of_product(multiplier_array, multiplicand_array, shift):
+        for i in range(0, len(multiplier_array)):
+            if i == 0:
+                result = len(multiplicand_array)
+            else:
+                result = result + shift
+        result = result + shift
+        return result
 
     mapping_dictionary = {
         (0, 0, 0): 0,
@@ -114,8 +112,6 @@ def approximate_compressor_final(multiplier,multiplicand):
 
     def get_mappings_for_multiplier_bits(bit_array):
         return mapping_dictionary[bit_array[0],bit_array[1],bit_array[2]]
-
-
 
 
     def add_zeros_to_start_of_array(products_array, length_of_product):
@@ -316,6 +312,7 @@ def approximate_compressor_final(multiplier,multiplicand):
     exact_compressor_columns = add_exact_compressor_columns(splitted_columns_array)
 
 
+    print(splitted_columns_array)
 
     result = {}
     cout_array = []

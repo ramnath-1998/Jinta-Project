@@ -56,16 +56,19 @@ def exact_compressor_final(multiplier,multiplicand):
             two_s_complement.append(0)
             result_array = two_s_complement
         return result_array
-
+ 
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
-        while len(array) < 16:
-            array.insert(0,0)
+        array = fill_start_with_zeros(array, 16)
         return array
-
 
     def convert_to_binary_from_binary_array(binary_array):
         binary_string = "".join(str(bit) for bit in binary_array)
@@ -85,6 +88,7 @@ def exact_compressor_final(multiplier,multiplicand):
 
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -97,7 +101,7 @@ def exact_compressor_final(multiplier,multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
-
+    
     mapping_dictionary = {
         (0, 0, 0): 0,
         (0, 0, 1): 1,
@@ -649,19 +653,18 @@ def approximate_compressor_final(multiplier,multiplicand):
         return result_array
 
 
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
-        while len(array) < 16:
-            array.insert(0,0)
+        array = fill_start_with_zeros(array, 16)
         return array
-
-    def convert_to_binary_from_binary_array(binary_array):
-        binary_string = "".join(str(bit) for bit in binary_array)
-        binary_number = int(binary_string)
-        return binary_number
 
 
     def calculate_length_of_product(multiplier_array, multiplicand_array, shift):
@@ -673,9 +676,9 @@ def approximate_compressor_final(multiplier,multiplicand):
         result = result + shift
         return result
 
-
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -688,7 +691,7 @@ def approximate_compressor_final(multiplier,multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
-
+    
     mapping_dictionary = {
         (0, 0, 0): 0,
         (0, 0, 1): 1,
@@ -1187,16 +1190,19 @@ def approximate_in_seven_and_eight_final(multiplier,multiplicand):
         return result_array
 
 
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
-        while len(array) < 16:
-            array.insert(0,0)
+        array = fill_start_with_zeros(array, 16)
         return array
-
-
+    
     def convert_to_binary_from_binary_array(binary_array):
         binary_string = "".join(str(bit) for bit in binary_array)
         binary_number = int(binary_string)
@@ -1212,9 +1218,9 @@ def approximate_in_seven_and_eight_final(multiplier,multiplicand):
         result = result + shift
         return result
 
-
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -1227,7 +1233,7 @@ def approximate_in_seven_and_eight_final(multiplier,multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
-
+    
     mapping_dictionary = {
         (0, 0, 0): 0,
         (0, 0, 1): 1,
@@ -1774,16 +1780,19 @@ def approximate_in_seven_eight_nine_final(multiplier, multiplicand):
             result_array = two_s_complement
         return result_array
 
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
-        while len(array) < 16:
-            array.insert(0,0)
+        array = fill_start_with_zeros(array, 16)
         return array
-
-
+    
     def convert_to_binary_from_binary_array(binary_array):
         binary_string = "".join(str(bit) for bit in binary_array)
         binary_number = int(binary_string)
@@ -1802,6 +1811,7 @@ def approximate_in_seven_eight_nine_final(multiplier, multiplicand):
 
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -1814,7 +1824,7 @@ def approximate_in_seven_eight_nine_final(multiplier, multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
-
+    
     mapping_dictionary = {
         (0, 0, 0): 0,
         (0, 0, 1): 1,
@@ -2372,15 +2382,19 @@ def approximate_in_seven_to_twelve_final(multiplier,multiplicand):
         return result_array
 
 
+    def fill_start_with_zeros(array,array_length):
+        while len(array) < array_length:
+            array.insert(0,0)
+        return array
+    
     def convert_to_binary_array(number):
         binary_number = bin(number)[2:]
         array = []
         for each_digit in binary_number:
             array.append(int(each_digit))
-        while len(array) < 16:
-            array.insert(0,0)
+        array = fill_start_with_zeros(array, 16)
         return array
-
+    
     def convert_to_binary_from_binary_array(binary_array):
         binary_string = "".join(str(bit) for bit in binary_array)
         binary_number = int(binary_string)
@@ -2396,9 +2410,9 @@ def approximate_in_seven_to_twelve_final(multiplier,multiplicand):
         result = result + shift
         return result
 
-
     def generate_multiplier(multiplier_as_decimal):
         multiplier_binary_array = convert_to_binary_array(multiplier_as_decimal)
+        multiplier_binary_array = fill_start_with_zeros(multiplier_binary_array,16)
         multiplier_binary_array.insert(0, 0)
         result = []
         temp = []
@@ -2411,7 +2425,7 @@ def approximate_in_seven_to_twelve_final(multiplier,multiplicand):
         for each_bit in result :
             final_result.append(get_mappings_for_multiplier_bits(each_bit))
         return final_result
-
+    
     mapping_dictionary = {
         (0, 0, 0): 0,
         (0, 0, 1): 1,
@@ -2911,7 +2925,7 @@ def approximate_in_seven_to_twelve_final(multiplier,multiplicand):
 
 
 def generate_input_numbers():
-    first_number = 0b1000000000000000
+    first_number = 0b0000000000000000
     last_number = 0b1111111111111111
     result = []
     for i in range(first_number + 1, last_number):
@@ -2925,8 +2939,6 @@ def generate_multiplier_multiplicand_pair_array():
     for each_multiplier in multipliers:
         for each_multiplicand in multiplicands:
             result.append([each_multiplicand,each_multiplier])
-            if len(result) == 1000 :
-                return result
     return result
 multiplier_multiplicand_pair_array = generate_multiplier_multiplicand_pair_array()
 
