@@ -1,3 +1,6 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 
 def exact_compressor_final(multiplier,multiplicand):
@@ -912,6 +915,7 @@ def approximate_compressor_final(multiplier,multiplicand):
     cout_array = []
 
 
+
     for i in range(len(splitted_columns_array)):
         for j in range(len(splitted_columns_array[i])):
             byte_array = splitted_columns_array[i][j]
@@ -1004,7 +1008,7 @@ def approximate_compressor_final(multiplier,multiplicand):
             column = [column_1[0],column_1[1],column_2[0],column_2[1]]
             columns.append(column)
         return columns
-
+    
 
     splitted_columns_array_final = generate_columns_before_cpa(result)
 
@@ -1127,9 +1131,10 @@ def approximate_compressor_final(multiplier,multiplicand):
             if digit == 1:
                 value = value + pow(2, i)
         return value
-
-
+    
     return convert_bin_array_to_decimal(final_bit_array)
+
+
 
 
 def approximate_in_seven_and_eight_final(multiplier,multiplicand):
@@ -2940,57 +2945,142 @@ def generate_multiplier_multiplicand_pair_array():
         for each_multiplicand in multiplicands:
             result.append([each_multiplicand,each_multiplier])
     return result
-multiplier_multiplicand_pair_array = generate_multiplier_multiplicand_pair_array()
+# multiplier_multiplicand_pair_array = generate_multiplier_multiplicand_pair_array()
 
 
-med1 = 0
-med2 = 0
-med3 = 0
-med4 = 0
-mred1 = 0
-mred2 = 0
-mred3 = 0
-mred4 = 0
-nmed1 = 0
-nmed2 = 0
-nmed3 = 0
-nmed4 = 0
-for each_pair in multiplier_multiplicand_pair_array:
-    multiplier = each_pair[0]
-    multiplicand = each_pair[1]
-    med1 = med1 + (exact_compressor_final(multiplier, multiplicand) - approximate_compressor_final(multiplier,multiplicand))
-    med2 = med2 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_and_eight_final(multiplier,multiplicand))
-    med3 = med3 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_eight_nine_final(multiplier,multiplicand))
-    med4 = med4 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_to_twelve_final(multiplier,multiplicand))
-    mred1 = mred1 + ((exact_compressor_final(multiplier, multiplicand) - approximate_compressor_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
-    mred2 = mred2 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_and_eight_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
-    mred3 = mred3 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_eight_nine_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
-    mred4 = mred4 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_to_twelve_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
+# med1 = 0
+# med2 = 0
+# med3 = 0
+# med4 = 0
+# mred1 = 0
+# mred2 = 0
+# mred3 = 0
+# mred4 = 0
+# nmed1 = 0
+# nmed2 = 0
+# nmed3 = 0
+# nmed4 = 0
+# for each_pair in multiplier_multiplicand_pair_array:
+#     multiplier = each_pair[0]
+#     multiplicand = each_pair[1]
+#     med1 = med1 + (exact_compressor_final(multiplier, multiplicand) - approximate_compressor_final(multiplier,multiplicand))
+#     med2 = med2 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_and_eight_final(multiplier,multiplicand))
+#     med3 = med3 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_eight_nine_final(multiplier,multiplicand))
+#     med4 = med4 + (exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_to_twelve_final(multiplier,multiplicand))
+#     mred1 = mred1 + ((exact_compressor_final(multiplier, multiplicand) - approximate_compressor_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
+#     mred2 = mred2 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_and_eight_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
+#     mred3 = mred3 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_eight_nine_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
+#     mred4 = mred4 + ((exact_compressor_final(multiplier, multiplicand) - approximate_in_seven_to_twelve_final(multiplier,multiplicand))/exact_compressor_final(multiplier,multiplicand))
 
 
-med1 = med1 /len(multiplier_multiplicand_pair_array)
-med2 = med2 /len(multiplier_multiplicand_pair_array)
-med3 = med3 /len(multiplier_multiplicand_pair_array)
-med4 = med4 /len(multiplier_multiplicand_pair_array)
-mred1 = mred1/len(multiplier_multiplicand_pair_array)
-mred2 = mred2/len(multiplier_multiplicand_pair_array)
-mred3= mred3/len(multiplier_multiplicand_pair_array)
-mred4= mred4/len(multiplier_multiplicand_pair_array)
+# med1 = med1 /len(multiplier_multiplicand_pair_array)
+# med2 = med2 /len(multiplier_multiplicand_pair_array)
+# med3 = med3 /len(multiplier_multiplicand_pair_array)
+# med4 = med4 /len(multiplier_multiplicand_pair_array)
+# mred1 = mred1/len(multiplier_multiplicand_pair_array)
+# mred2 = mred2/len(multiplier_multiplicand_pair_array)
+# mred3= mred3/len(multiplier_multiplicand_pair_array)
+# mred4= mred4/len(multiplier_multiplicand_pair_array)
 
 
-print(f"MED of Approximate Compressor : {med1}")
+# print(f"MED of Approximate Compressor : {med1}")
 
-print(f"MED of Approximate Compressor 7,8 : {med2}")
+# print(f"MED of Approximate Compressor 7,8 : {med2}")
 
-print(f"MED of Approximate Compressor 7,8,9 : {med3}")
+# print(f"MED of Approximate Compressor 7,8,9 : {med3}")
 
-print(f"MED of Approximate Compressor 7,8,9,10,11,12 : {med4} ")
+# print(f"MED of Approximate Compressor 7,8,9,10,11,12 : {med4} ")
 
 
-print(f"MRED of Approximate Compressor : {mred1}")
+# print(f"MRED of Approximate Compressor : {mred1}")
 
-print(f"MRED of Approximate Compressor 7,8 : {mred2}")
+# print(f"MRED of Approximate Compressor 7,8 : {mred2}")
 
-print(f"MRED of Approximate Compressor 7,8,9 : {mred3}")
+# print(f"MRED of Approximate Compressor 7,8,9 : {mred3}")
 
-print(f"MRED of Approximate Compressor 7,8,9,10,11,12 : {mred4}")
+# print(f"MRED of Approximate Compressor 7,8,9,10,11,12 : {mred4}")
+
+
+
+
+def dct2(block):
+    print(block)
+    M, N = block.shape
+    dct_block = np.zeros_like(block, dtype=np.float64)
+
+    for u in range(M):
+        for v in range(N):
+            cu = 1.0 / np.sqrt(2) if u == 0 else 1.0
+            cv = 1.0 / np.sqrt(2) if v == 0 else 1.0
+
+            sum_val = 0.0
+            for x in range(M):
+                for y in range(N):
+                    sum_val += approximate_compressor_final(x,y) * np.cos((2 * x + 1) * u * np.pi / (2 * M)) * np.cos(
+                        (2 * y + 1) * v * np.pi / (2 * N)
+                    )
+
+            dct_block[u, v] = cu * cv * sum_val / np.sqrt(M * N)
+
+    return dct_block
+
+def idct2(block):
+    M, N = block.shape
+    idct_block = np.zeros_like(block, dtype=np.float64)
+
+    for x in range(M):
+        for y in range(N):
+            sum_val = 0.0
+            for u in range(M):
+                for v in range(N):
+                    cu = 1.0 / np.sqrt(2) if u == 0 else 1.0
+                    cv = 1.0 / np.sqrt(2) if v == 0 else 1.0
+
+                    sum_val += cu * cv * block[u, v] * np.cos((2 * x + 1) * u * np.pi / (2 * M)) * np.cos(
+                        (2 * y + 1) * v * np.pi / (2 * N)
+                    )
+
+            idct_block[x, y] = sum_val / np.sqrt(M * N)
+
+    return idct_block
+
+def apply_dct(image):
+    image_array = np.array(image, dtype=np.uint16)
+    dct_image = np.zeros_like(image_array, dtype=np.float64)
+
+    for i in range(0, image_array.shape[0], 8):
+        for j in range(0, image_array.shape[1], 8):
+            dct_image[i:i+8, j:j+8] = dct2(image_array[i:i+8, j:j+8])
+
+    return dct_image
+
+def apply_idct(dct_image):
+    image_array = np.zeros_like(dct_image, dtype=np.uint16)
+
+    for i in range(0, image_array.shape[0], 8):
+        for j in range(0, image_array.shape[1], 8):
+            image_array[i:i+8, j:j+8] = idct2(dct_image[i:i+8, j:j+8])
+
+    return np.clip(image_array, 0, 65535).astype(np.uint16)
+
+image_path = './lena1.jpg'
+original_image = Image.open(image_path).convert('L')  # Convert to grayscale
+
+dct_image = apply_dct(original_image)
+
+idct_image = apply_idct(dct_image)
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 3, 1)
+plt.imshow(original_image, cmap='gray')
+plt.title('Original Image')
+
+plt.subplot(1, 3, 2)
+plt.imshow(np.log1p(np.abs(dct_image)), cmap='gray')
+plt.title('DCT Image')
+
+plt.subplot(1, 3, 3)
+plt.imshow(idct_image, cmap='gray')
+plt.title('IDCT Image')
+
+plt.show()

@@ -1,6 +1,6 @@
 
-multiplier = 100
-multiplicand = 64135
+multiplier = 161
+multiplicand = 1
 
 
 def approximate_compressor_final(multiplier,multiplicand):
@@ -25,6 +25,8 @@ def approximate_compressor_final(multiplier,multiplicand):
     def multiply_multiplier_with_multiplicand(multiplier, multiplicand):
         multiplicand_array = convert_to_binary_array(multiplicand)
         multiplier_array = generate_multiplier(multiplier)
+        print(multiplicand_array)
+        print(multiplier_array)
         shift = 2
         length_of_product = calculate_length_of_product(
             multiplier_array, multiplicand_array, shift
@@ -312,7 +314,7 @@ def approximate_compressor_final(multiplier,multiplicand):
     exact_compressor_columns = add_exact_compressor_columns(splitted_columns_array)
 
 
-    print(splitted_columns_array)
+    print(len(splitted_columns_array))
 
     result = {}
     cout_array = []
@@ -399,6 +401,7 @@ def approximate_compressor_final(multiplier,multiplicand):
                                 carry_exact_first
                             ]
 
+    print(result)
 
     def generate_columns_before_cpa(result):
         columns = []
